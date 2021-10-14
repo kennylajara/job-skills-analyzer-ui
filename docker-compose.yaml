@@ -7,6 +7,8 @@ services:
       context: .
       dockerfile: Dockerfile
       target: prod
-    ports:
-      - 5000:5000
 
+networks:
+  default:
+    name: nginxproxymanager_default
+    external: true
