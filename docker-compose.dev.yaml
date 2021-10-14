@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+      - 5000:5000
+      - 35729:35729
+    volumes:
+      - ./public:/usr/src/app/public
+      - ./scripts:/usr/src/app/scripts
+      - ./src:/usr/src/app/src
+      - ./node_modules:/node_modules
