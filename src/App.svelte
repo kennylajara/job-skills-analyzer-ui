@@ -4,8 +4,8 @@
 	 * TODO: Don't rush... use environment variable
 	 *
 	 */
-	const API_URL = "http://localhost:3000/";
-	// const API_URL = "https://api.skills.kennylajara.com/";
+	//const API_URL = "http://localhost:3000/";
+	const API_URL = "https://api.skills.kennylajara.com/";
 </script>
 
 <script>
