@@ -1,10 +1,54 @@
+<script context="module">
+	/**
+	 *
+	 * TODO: Don't rush... use environment variable
+	 *
+	 */
+	const API_URL = "http://localhost:3000/";
+	// const API_URL = "https://api.skills.kennylajara.com/";
+</script>
+
 <script>
-	// TODO: Use environment variable
-	const API_URL = "https://api.skills.kennylajara.com/";
-	console.log(API_URL);
+	let sample = 20;
+	let skill = "Python";
+	let market = "jobs";
+	let proficiency = "master";
+
+	let result = null;
+	var related_skills = [];
+
+	async function doPost() {
+		const endpoint = `${API_URL}${market}?sample=${sample}`;
+		const res = await fetch(endpoint, {
+			method: "POST",
+			body: JSON.stringify({
+				skills: {
+					[skill]: proficiency,
+				},
+			}),
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+
+		const json = await res.json();
+		result = JSON.parse(JSON.stringify(json));
+		related_skills = [];
+
+		for (const key in result.related_skills) {
+			// console.log(`${key} => ${result.related_skills[key]}`);
+			alert(`${key} => ${result.related_skills[key]}`);
+		}
+	}
 </script>
 
 <main>
+	<!-- 
+	#
+	#	TODO: DONT RUSH!!!! USE COMPONENTS
+	#
+	-->
+
 	<!--Main Navigation-->
 	<header>
 		<style>
@@ -96,8 +140,10 @@
 									<input
 										class="form-check-input"
 										type="radio"
-										name="flexRadioDefault"
+										name="market"
+										bind:group={market}
 										id="flexRadioDefault1"
+										value="jobs"
 										checked
 									/>
 									<label
@@ -113,8 +159,10 @@
 									<input
 										class="form-check-input"
 										type="radio"
-										name="flexRadioDefault"
+										name="market"
+										bind:group={market}
 										id="flexRadioDefault2"
+										value="people"
 									/>
 									<label
 										class="form-check-label"
@@ -135,10 +183,8 @@
 										class="form-control"
 										style="border: 1px solid #ddd;"
 										placeholder="PHP"
+										bind:value={skill}
 									/>
-									<label class="form-label" for="form12">
-										Skill/Role
-									</label>
 								</div>
 
 								<p class="fs-5 text mt-4">Proficiency</p>
@@ -147,7 +193,8 @@
 									<input
 										class="form-check-input"
 										type="radio"
-										name="aflexRadioDefault"
+										name="proficiency"
+										bind:group={proficiency}
 										id="aflexRadioDefault1"
 										value="master"
 										checked
@@ -165,7 +212,8 @@
 									<input
 										class="form-check-input"
 										type="radio"
-										name="aflexRadioDefault"
+										name="proficiency"
+										bind:group={proficiency}
 										id="aflexRadioDefault2"
 										value="expert"
 									/>
@@ -182,7 +230,8 @@
 									<input
 										class="form-check-input"
 										type="radio"
-										name="aflexRadioDefault"
+										name="proficiency"
+										bind:group={proficiency}
 										id="aflexRadioDefault3"
 										value="proficient"
 									/>
@@ -199,7 +248,8 @@
 									<input
 										class="form-check-input"
 										type="radio"
-										name="aflexRadioDefault"
+										name="proficiency"
+										bind:group={proficiency}
 										id="aflexRadioDefault4"
 										value="novice"
 									/>
@@ -212,11 +262,12 @@
 								</div>
 
 								<!-- Default checked radio -->
-								<div class="form-check">
+								<!-- <div class="form-check">
 									<input
 										class="form-check-input"
 										type="radio"
-										name="aflexRadioDefault"
+										name="proficiency"
+										bind:group={proficiency}
 										id="aflexRadioDefault5"
 										value="no_experience_interested"
 									/>
@@ -226,7 +277,7 @@
 									>
 										Interested
 									</label>
-								</div>
+								</div> -->
 
 								<p class="fs-5 text mt-4">Sample Size</p>
 
@@ -236,16 +287,17 @@
 										id="form12"
 										class="form-control"
 										style="border: 1px solid #ddd;"
-										value="20"
+										bind:value={sample}
 									/>
 								</div>
 
-								<!-- Submit button -->
 								<button
-									type="input"
+									type="button"
 									class="btn btn-primary btn-block mt-4"
-									>Explore</button
+									on:click={doPost}
 								>
+									Explore
+								</button>
 							</form>
 						</div>
 					</div>
@@ -333,6 +385,44 @@
 		<!-- Copyright -->
 	</footer>
 	<!--Footer-->
+
+	<!-- Modal -->
+	<div
+		class="modal fade"
+		id="myModal"
+		tabindex="-1"
+		aria-labelledby="exampleModalLabel"
+		aria-hidden="true"
+	>
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalLabel">
+						Modal title
+					</h5>
+					<button
+						type="button"
+						class="btn-close"
+						data-mdb-dismiss="modal"
+						aria-label="Close"
+					/>
+				</div>
+				<div class="modal-body">...</div>
+				<div class="modal-footer">
+					<button
+						type="button"
+						class="btn btn-secondary"
+						data-mdb-dismiss="modal"
+					>
+						Close
+					</button>
+					<button type="button" class="btn btn-primary"
+						>Save changes</button
+					>
+				</div>
+			</div>
+		</div>
+	</div>
 </main>
 
 <style>
