@@ -124,8 +124,8 @@
 									</label>
 								</div>
 
-								<p class="fs-5 text mt-3">
-									Type the main skill you are looking for
+								<p class="fs-5 text mt-4">
+									What skill are you looking for?
 								</p>
 
 								<div class="form-outline">
@@ -133,10 +133,111 @@
 										type="text"
 										id="form12"
 										class="form-control"
+										style="border: 1px solid #ddd;"
+										placeholder="PHP"
 									/>
 									<label class="form-label" for="form12">
-										Main Skill/Role
+										Skill/Role
 									</label>
+								</div>
+
+								<p class="fs-5 text mt-4">Proficiency</p>
+								<!-- Default radio -->
+								<div class="form-check">
+									<input
+										class="form-check-input"
+										type="radio"
+										name="aflexRadioDefault"
+										id="aflexRadioDefault1"
+										value="master"
+										checked
+									/>
+									<label
+										class="form-check-label"
+										for="aflexRadioDefault1"
+									>
+										Master
+									</label>
+								</div>
+
+								<!-- Default checked radio -->
+								<div class="form-check">
+									<input
+										class="form-check-input"
+										type="radio"
+										name="aflexRadioDefault"
+										id="aflexRadioDefault2"
+										value="expert"
+									/>
+									<label
+										class="form-check-label"
+										for="aflexRadioDefault2"
+									>
+										Expert
+									</label>
+								</div>
+
+								<!-- Default checked radio -->
+								<div class="form-check">
+									<input
+										class="form-check-input"
+										type="radio"
+										name="aflexRadioDefault"
+										id="aflexRadioDefault3"
+										value="proficient"
+									/>
+									<label
+										class="form-check-label"
+										for="aflexRadioDefault3"
+									>
+										Proficient
+									</label>
+								</div>
+
+								<!-- Default checked radio -->
+								<div class="form-check">
+									<input
+										class="form-check-input"
+										type="radio"
+										name="aflexRadioDefault"
+										id="aflexRadioDefault4"
+										value="novice"
+									/>
+									<label
+										class="form-check-label"
+										for="aflexRadioDefault4"
+									>
+										Novice
+									</label>
+								</div>
+
+								<!-- Default checked radio -->
+								<div class="form-check">
+									<input
+										class="form-check-input"
+										type="radio"
+										name="aflexRadioDefault"
+										id="aflexRadioDefault5"
+										value="no_experience_interested"
+									/>
+									<label
+										class="form-check-label"
+										for="aflexRadioDefault5"
+									>
+										Interested
+									</label>
+								</div>
+
+								<p class="fs-5 text mt-4">Sample Size</p>
+
+								<div class="form-outline">
+									<input
+										type="text"
+										id="form12"
+										class="form-control"
+										style="border: 1px solid #ddd;"
+										value="20"
+									/>
 								</div>
 
 								<!-- Submit button -->
