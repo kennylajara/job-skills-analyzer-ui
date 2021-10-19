@@ -11,7 +11,7 @@
 <script>
     import { Modal } from "mdb-ui-kit";
 
-    let sample = 20;
+    let sample = 300;
     let skill = "Python";
     let market = "jobs";
     let proficiency = "master";
@@ -21,49 +21,73 @@
 
     var modal = null;
 
-    let getRandomTone = () => {
-        let min = 64;
-        let max = 128;
-        return Math.floor(Math.random() * (max - min)) + min;
+    let getFreqColor = (percentil) => {
+        if (percentil >= 80) {
+            return "green";
+        } else if (percentil >= 60) {
+            return "blue";
+        } else if (percentil >= 40) {
+            return "yellow";
+        } else if (percentil >= 20) {
+            return "orange";
+        } else {
+            return "red";
+        }
     };
 
     /**
      * Sumbit form
      */
     async function doPost() {
-        const endpoint = `${API_URL}${market}?sample=${sample}`;
-        const res = await fetch(endpoint, {
-            method: "POST",
-            body: JSON.stringify({
-                skills: {
-                    [skill]: proficiency,
+        document.body.style.cursor = "wait";
+        document.getElementById("btn_explore").disabled = true;
+
+        if (Number(sample) <= 2500) {
+            const endpoint = `${API_URL}${market}?sample=${sample}`;
+            const res = await fetch(endpoint, {
+                method: "POST",
+                body: JSON.stringify({
+                    skills: {
+                        [skill]: proficiency,
+                    },
+                }),
+                headers: {
+                    "Content-Type": "application/json",
                 },
-            }),
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
+            });
 
-        const json = await res.json();
-        result = JSON.parse(JSON.stringify(json));
-        related_skills = [];
+            const json = await res.json();
+            result = JSON.parse(JSON.stringify(json));
+            related_skills = [];
 
-        let iDiv = document.getElementById("modal-body");
-        iDiv.innerHTML = "";
-        for (const key in result.related_skills) {
-            let innerDiv = document.createElement("span");
-            innerDiv.style.color = "#ffffff";
-            innerDiv.style.backgroundColor = `rgb(${getRandomTone()}, ${getRandomTone()}, ${getRandomTone()})`;
-            innerDiv.style.margin = "5px";
-            innerDiv.style.padding = "5px";
-            innerDiv.style.borderRadius = "5px";
-            innerDiv.style.display = "inline-block";
-            let percentage = (result.related_skills[key] * 100).toFixed(2);
-            innerDiv.innerHTML = `<strong>${key}:</strong> ${percentage}%`;
-            iDiv.appendChild(innerDiv);
+            let iDiv = document.getElementById("modal-tags");
+            iDiv.innerHTML = "";
+            let max_skill_frequency = Math.max.apply(
+                null,
+                Object.values(result.related_skills)
+            );
+            for (const key in result.related_skills) {
+                let percentil =
+                    (result.related_skills[key] / max_skill_frequency) * 100;
+                let innerDiv = document.createElement("span");
+                innerDiv.style.color =
+                    percentil >= 20 && percentil < 60 ? "#222" : "#fff";
+                innerDiv.style.backgroundColor = getFreqColor(percentil);
+                innerDiv.style.margin = "5px";
+                innerDiv.style.padding = "5px";
+                innerDiv.style.borderRadius = "5px";
+                innerDiv.style.display = "inline-block";
+                innerDiv.innerHTML = `<strong>${key}</strong>`;
+                iDiv.appendChild(innerDiv);
+            }
+        } else {
+            let iDiv = document.getElementById("modal-body");
+            iDiv.innerHTML = "The maximun sample size is 2,500.";
         }
 
         modal.show();
+        document.body.style.cursor = "auto";
+        document.getElementById("btn_explore").disabled = false;
     }
 
     /**
@@ -218,19 +242,23 @@
                     </label>
                 </div>
 
+                <!--
                 <p class="fs-5 text mt-4">Sample Size</p>
 
                 <div class="form-outline">
                     <input
-                        type="text"
+                        type="number"
                         id="form12"
                         class="form-control"
                         style="border: 1px solid #ddd;"
                         bind:value={sample}
+                        max="2500"
                     />
                 </div>
+                -->
 
                 <button
+                    id="btn_explore"
                     type="button"
                     class="btn btn-primary btn-block mt-4"
                     on:click={doPost}
@@ -262,7 +290,10 @@
                 />
             </div>
             <div id="modal-body" class="modal-body">
-                <span class="skill-tag">Placeholder</span>
+                <!-- <p>Brief description here</p> -->
+                <div id="modal-tags">
+                    <span class="skill-tag">Placeholder</span>
+                </div>
             </div>
             <div class="modal-footer">
                 <button
