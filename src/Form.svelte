@@ -12,14 +12,13 @@
     import { Modal } from "mdb-ui-kit";
 
     let sample = 300;
-    let skill = "Python";
-    let market = "jobs";
+    var skill = "";
     let proficiency = "master";
+    var market = "people";
 
     let result = null;
-    var related_skills = [];
 
-    var modal = null;
+    var modal = {};
 
     let getFreqColor = (percentil) => {
         if (percentil >= 80) {
@@ -36,9 +35,70 @@
     };
 
     /**
+     * Print Related Skills
+     */
+    function printRelatedSkills(market, percentils) {
+        let iDiv = document.getElementById(`modal-tags-${market}`);
+        iDiv.innerHTML = "";
+
+        // Rewuired vars to limit the number of low priority skills
+        let found_red_skill = false;
+        let skills_counter = 0;
+        let related_skills_to_show = 0;
+
+        for (const key in percentils) {
+            // Initialization
+            let percentil = percentils[key];
+            let color = percentil >= 20 && percentil < 60 ? "#222" : "#fff";
+            let innerDiv = document.createElement("span");
+
+            // Limit low priority skills
+            if (percentil < 20) {
+                if (found_red_skill == false) {
+                    found_red_skill = true;
+                    related_skills_to_show =
+                        Math.ceil(Number(skills_counter)) / 4;
+                }
+            }
+            skills_counter++;
+
+            // Print the tag
+            innerDiv.style.color = color;
+            innerDiv.style.backgroundColor = getFreqColor(percentil);
+            innerDiv.style.margin = "5px";
+            innerDiv.style.padding = "5px";
+            innerDiv.style.borderRadius = "5px";
+            innerDiv.style.display = "inline-block";
+            innerDiv.innerHTML = `<strong>${key}</strong>`;
+
+            iDiv.appendChild(innerDiv);
+
+            if (percentil < 20 && related_skills_to_show == 0) {
+                break;
+            }
+        }
+    }
+
+    /**
      * Sumbit form
      */
-    async function doPost() {
+    async function submitForm() {
+        if (skill) {
+            document.getElementById("skill_is_required").style.display = "none";
+            let skills = await exploreMarket(market, false);
+            printRelatedSkills(market, skills);
+            modal[market].show();
+        } else {
+            document.getElementById("skill_is_required").style.display =
+                "block";
+        }
+    }
+
+    /**
+     * Explore market
+     * @param market
+     */
+    async function exploreMarket(market) {
         document.body.style.cursor = "wait";
         document.getElementById("btn_explore").disabled = true;
 
@@ -58,76 +118,68 @@
 
             const json = await res.json();
             result = JSON.parse(JSON.stringify(json));
-            related_skills = [];
 
-            let iDiv = document.getElementById("modal-tags");
-            iDiv.innerHTML = "";
             let max_skill_frequency = Math.max.apply(
                 null,
                 Object.values(result.related_skills)
             );
+
+            let percentils = {};
             for (const key in result.related_skills) {
-                let percentil =
+                percentils[key] =
                     (result.related_skills[key] / max_skill_frequency) * 100;
-                let innerDiv = document.createElement("span");
-                innerDiv.style.color =
-                    percentil >= 20 && percentil < 60 ? "#222" : "#fff";
-                innerDiv.style.backgroundColor = getFreqColor(percentil);
-                innerDiv.style.margin = "5px";
-                innerDiv.style.padding = "5px";
-                innerDiv.style.borderRadius = "5px";
-                innerDiv.style.display = "inline-block";
-                innerDiv.innerHTML = `<strong>${key}</strong>`;
-                iDiv.appendChild(innerDiv);
             }
+
+            document.body.style.cursor = "auto";
+            document.getElementById("btn_explore").disabled = false;
+
+            return percentils;
         } else {
-            let iDiv = document.getElementById("modal-body");
+            let iDiv = document.getElementById(`modal-body-${market}`);
             iDiv.innerHTML = "The maximun sample size is 2,500.";
         }
-
-        modal.show();
-        document.body.style.cursor = "auto";
-        document.getElementById("btn_explore").disabled = false;
     }
 
     /**
      * Modal window
      */
-    window.addEventListener(
-        "DOMContentLoaded",
-        (event) => {
-            const selector = "#myModal";
-            const modalElement = document.querySelector(selector);
+    ["jobs", "people"].forEach((market) => {
+        window.addEventListener(
+            "DOMContentLoaded",
+            (event) => {
+                const selector = `#${market}Modal`;
+                const modalElement = document.querySelector(selector);
 
-            if (!modalElement) {
-                return;
-            }
+                if (!modalElement) {
+                    return;
+                }
 
-            const mode = modalElement.dataset.autoOpen;
-            const fade = modalElement.classList.contains("fade");
+                const mode = modalElement.dataset.autoOpen;
+                const fade = modalElement.classList.contains("fade");
 
-            if (fade && mode === "instant") {
-                modalElement.classList.remove("fade");
-            }
+                if (fade && mode === "instant") {
+                    modalElement.classList.remove("fade");
+                }
 
-            modal = new Modal(modalElement, {});
+                modal[market] = new Modal(modalElement, {});
 
-            if (fade && mode === "instant") {
-                // There's currently a bug in the backdrop when the fade class
-                // will be added directly after the modal was opened to have the
-                // close animation
-                // modalElement.addEventListener('shown.bs.modal', function (event) {
-                modalElement.addEventListener(
-                    "hidden.bs.modal",
-                    function (event) {
-                        modalElement.classList.add("fade");
-                    },
-                    { once: true }
-                );
-            }
-        },
-        { once: true }
-    );
+                if (fade && mode === "instant") {
+                    // There's currently a bug in the backdrop when the fade class
+                    // will be added directly after the modal was opened to have the
+                    // close animation
+                    // modalElement.addEventListener('shown.bs.modal', function (event) {
+                    modalElement.addEventListener(
+                        "hidden.bs.modal",
+                        function (event) {
+                            modalElement.classList.add("fade");
+                        },
+                        { once: true }
+                    );
+                }
+            },
+            { once: true }
+        );
+    });
 </script>
 
 <!-- Form -->
@@ -135,39 +187,14 @@
     <div class="row justify-content-center">
         <div class="col-xl-5 col-md-8">
             <form class="bg-white  rounded-5 shadow-5-strong p-5">
-                <p class="fs-5 text">Select the market you want to explore</p>
-                <!-- Default radio -->
-                <div class="form-check">
-                    <input
-                        class="form-check-input"
-                        type="radio"
-                        name="market"
-                        bind:group={market}
-                        id="flexRadioDefault1"
-                        value="jobs"
-                        checked
-                    />
-                    <label class="form-check-label" for="flexRadioDefault1">
-                        Job offer
-                    </label>
-                </div>
-
-                <!-- Default checked radio -->
-                <div class="form-check">
-                    <input
-                        class="form-check-input"
-                        type="radio"
-                        name="market"
-                        bind:group={market}
-                        id="flexRadioDefault2"
-                        value="people"
-                    />
-                    <label class="form-check-label" for="flexRadioDefault2">
-                        Human talent
-                    </label>
-                </div>
-
-                <p class="fs-5 text mt-4">What skill are you looking for?</p>
+                <p class="fs-5 text mt-4">What is your main skill?</p>
+                <p
+                    id="skill_is_required"
+                    class="text-danger m-0"
+                    style="display:none;"
+                >
+                    Required
+                </p>
 
                 <div class="form-outline">
                     <input
@@ -175,93 +202,131 @@
                         id="form12"
                         class="form-control"
                         style="border: 1px solid #ddd;"
-                        placeholder="PHP"
+                        placeholder=""
                         bind:value={skill}
                     />
                 </div>
 
-                <p class="fs-5 text mt-4">Proficiency</p>
+                <p class="fs-5 text mt-4">How good are you at that?</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <!-- Default radio -->
+                        <div class="form-check">
+                            <input
+                                class="form-check-input"
+                                type="radio"
+                                name="proficiency"
+                                bind:group={proficiency}
+                                id="aflexRadioDefault1"
+                                value="master"
+                                checked
+                            />
+                            <label
+                                class="form-check-label"
+                                for="aflexRadioDefault1"
+                            >
+                                Master
+                            </label>
+                        </div>
+
+                        <!-- Default checked radio -->
+                        <div class="form-check">
+                            <input
+                                class="form-check-input"
+                                type="radio"
+                                name="proficiency"
+                                bind:group={proficiency}
+                                id="aflexRadioDefault2"
+                                value="expert"
+                            />
+                            <label
+                                class="form-check-label"
+                                for="aflexRadioDefault2"
+                            >
+                                Expert
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <!-- Default checked radio -->
+                        <div class="form-check">
+                            <input
+                                class="form-check-input"
+                                type="radio"
+                                name="proficiency"
+                                bind:group={proficiency}
+                                id="aflexRadioDefault3"
+                                value="proficient"
+                            />
+                            <label
+                                class="form-check-label"
+                                for="aflexRadioDefault3"
+                            >
+                                Proficient
+                            </label>
+                        </div>
+
+                        <!-- Default checked radio -->
+                        <div class="form-check">
+                            <input
+                                class="form-check-input"
+                                type="radio"
+                                name="proficiency"
+                                bind:group={proficiency}
+                                id="aflexRadioDefault4"
+                                value="novice"
+                            />
+                            <label
+                                class="form-check-label"
+                                for="aflexRadioDefault4"
+                            >
+                                Novice
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="fs-5 text mt-4">What to you want to see?</p>
                 <!-- Default radio -->
                 <div class="form-check">
                     <input
-                        class="form-check-input"
+                        class="form-check-input me-0"
                         type="radio"
-                        name="proficiency"
-                        bind:group={proficiency}
-                        id="aflexRadioDefault1"
-                        value="master"
+                        name="market"
+                        bind:group={market}
+                        id="aflexRadioDefault13"
+                        value="people"
                         checked
                     />
-                    <label class="form-check-label" for="aflexRadioDefault1">
-                        Master
+                    <label class="form-check-label" for="aflexRadioDefault13">
+                        Find skills I might have that I forgot to add to my
+                        profile.
                     </label>
                 </div>
 
                 <!-- Default checked radio -->
                 <div class="form-check">
                     <input
-                        class="form-check-input"
+                        class="form-check-input me-0"
                         type="radio"
-                        name="proficiency"
-                        bind:group={proficiency}
-                        id="aflexRadioDefault2"
-                        value="expert"
+                        name="market"
+                        bind:group={market}
+                        id="aflexRadioDefault23"
+                        value="jobs"
                     />
-                    <label class="form-check-label" for="aflexRadioDefault2">
-                        Expert
+                    <label
+                        class="form-check-label mr-0"
+                        for="aflexRadioDefault23"
+                    >
+                        Find skills I could develop to get more job offers
                     </label>
                 </div>
-
-                <!-- Default checked radio -->
-                <div class="form-check">
-                    <input
-                        class="form-check-input"
-                        type="radio"
-                        name="proficiency"
-                        bind:group={proficiency}
-                        id="aflexRadioDefault3"
-                        value="proficient"
-                    />
-                    <label class="form-check-label" for="aflexRadioDefault3">
-                        Proficient
-                    </label>
-                </div>
-
-                <!-- Default checked radio -->
-                <div class="form-check">
-                    <input
-                        class="form-check-input"
-                        type="radio"
-                        name="proficiency"
-                        bind:group={proficiency}
-                        id="aflexRadioDefault4"
-                        value="novice"
-                    />
-                    <label class="form-check-label" for="aflexRadioDefault4">
-                        Novice
-                    </label>
-                </div>
-
-                <!--
-                <p class="fs-5 text mt-4">Sample Size</p>
-
-                <div class="form-outline">
-                    <input
-                        type="number"
-                        id="form12"
-                        class="form-control"
-                        style="border: 1px solid #ddd;"
-                        bind:value={sample}
-                        max="2500"
-                    />
-                </div>
-                -->
 
                 <button
                     id="btn_explore"
                     type="button"
                     class="btn btn-primary btn-block mt-4"
-                    on:click={doPost}
+                    on:click={submitForm}
                 >
                     Explore
                 </button>
@@ -270,10 +335,10 @@
     </div>
 </div>
 
-<!-- Modal -->
+<!-- Jobs Modal -->
 <div
     class="modal fade"
-    id="myModal"
+    id="jobsModal"
     tabindex="-1"
     aria-labelledby="exampleModalLabel"
     aria-hidden="true"
@@ -289,10 +354,52 @@
                     aria-label="Close"
                 />
             </div>
-            <div id="modal-body" class="modal-body">
+            <div id="modal-body-jobs" class="modal-body">
                 <!-- <p>Brief description here</p> -->
-                <div id="modal-tags">
-                    <span class="skill-tag">Placeholder</span>
+                <div id="modal-tags-jobs">
+                    <span class="skill-tag" style="display: none;">
+                        Placeholder
+                    </span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    data-mdb-dismiss="modal"
+                >
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- People Modal -->
+<div
+    class="modal fade"
+    id="peopleModal"
+    tabindex="-1"
+    aria-labelledby="exampleModalLabel"
+    aria-hidden="true"
+>
+    <div class="modal-dialog modal-dialog-scrollable ">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Results</h5>
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-mdb-dismiss="modal"
+                    aria-label="Close"
+                />
+            </div>
+            <div id="modal-body-people" class="modal-body">
+                <!-- <p>Brief description here</p> -->
+                <div id="modal-tags-people">
+                    <span class="skill-tag" style="display: none;">
+                        Placeholder
+                    </span>
                 </div>
             </div>
             <div class="modal-footer">
