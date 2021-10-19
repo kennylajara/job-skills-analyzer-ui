@@ -11,7 +11,7 @@
 <script>
     import { Modal } from "mdb-ui-kit";
 
-    let sample = 300;
+    let sample = 1000;
     var skill = "";
     let proficiency = "master";
     var market = "people";
@@ -56,8 +56,11 @@
             if (percentil < 20) {
                 if (found_red_skill == false) {
                     found_red_skill = true;
-                    related_skills_to_show =
-                        Math.ceil(Number(skills_counter)) / 4;
+                    related_skills_to_show = Math.ceil(
+                        Number(skills_counter) / 4
+                    );
+                } else {
+                    related_skills_to_show--;
                 }
             }
             skills_counter++;
@@ -71,11 +74,14 @@
             innerDiv.style.display = "inline-block";
             innerDiv.innerHTML = `<strong>${key}</strong>`;
 
-            iDiv.appendChild(innerDiv);
+            console.log(key);
+            console.log(percentil);
+            console.log(related_skills_to_show);
 
             if (percentil < 20 && related_skills_to_show == 0) {
                 break;
             }
+            iDiv.appendChild(innerDiv);
         }
     }
 
@@ -84,10 +90,48 @@
      */
     async function submitForm() {
         if (skill) {
-            document.getElementById("skill_is_required").style.display = "none";
-            let skills = await exploreMarket(market, false);
-            printRelatedSkills(market, skills);
-            modal[market].show();
+            if (market == "people") {
+                document.getElementById("skill_is_required").style.display =
+                    "none";
+                let skills = await exploreMarket(market, false);
+                printRelatedSkills(market, skills);
+                modal[market].show();
+            } else {
+                // Skills from market `people`
+                document.getElementById("skill_is_required").style.display =
+                    "none";
+                let peopleSkills = await exploreMarket("people", false);
+
+                // Skills from market `job`
+                document.getElementById("skill_is_required").style.display =
+                    "none";
+                let jobSkills = await exploreMarket("jobs", false);
+
+                // Find common skills
+                let jobSkillsList = Object.keys(jobSkills);
+                let relevantSkills = {};
+                for (var key in peopleSkills) {
+                    if (jobSkillsList.includes(key)) {
+                        relevantSkills[key] =
+                            jobSkills[key] * (1 / peopleSkills[key]);
+                    }
+                }
+
+                // Convert to percentil
+                let max_skill_frequency = Math.max.apply(
+                    null,
+                    Object.values(result.related_skills)
+                );
+                let percentils = {};
+                for (const key in result.related_skills) {
+                    percentils[key] =
+                        (result.related_skills[key] / max_skill_frequency) *
+                        100;
+                }
+
+                printRelatedSkills(market, percentils);
+                modal["jobs"].show();
+            }
         } else {
             document.getElementById("skill_is_required").style.display =
                 "block";
@@ -186,8 +230,10 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-xl-5 col-md-8">
-            <form class="bg-white  rounded-5 shadow-5-strong p-5">
-                <p class="fs-5 text mt-4">What is your main skill?</p>
+            <form class="bg-white rounded-5 shadow-5-strong p-5">
+                <p class="fs-5 text text-dark mt-4">
+                    Name one of your main skills
+                </p>
                 <p
                     id="skill_is_required"
                     class="text-danger m-0"
@@ -207,7 +253,9 @@
                     />
                 </div>
 
-                <p class="fs-5 text mt-4">How good are you at that?</p>
+                <p class="fs-5 text text-dark mt-4">
+                    How good are you at that?
+                </p>
                 <div class="row">
                     <div class="col-md-6">
                         <!-- Default radio -->
@@ -286,7 +334,7 @@
                     </div>
                 </div>
 
-                <p class="fs-5 text mt-4">What to you want to see?</p>
+                <p class="fs-5 text text-dark mt-4">What to you want to see?</p>
                 <!-- Default radio -->
                 <div class="form-check">
                     <input
@@ -299,8 +347,7 @@
                         checked
                     />
                     <label class="form-check-label" for="aflexRadioDefault13">
-                        Find skills I might have that I forgot to add to my
-                        profile.
+                        Related skills. I want to complete my profile.
                     </label>
                 </div>
 
@@ -318,7 +365,7 @@
                         class="form-check-label mr-0"
                         for="aflexRadioDefault23"
                     >
-                        Find skills I could develop to get more job offers
+                        Skills that I could develop to get more job offers.
                     </label>
                 </div>
 
