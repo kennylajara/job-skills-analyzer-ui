@@ -17,22 +17,19 @@
     var market = "people";
 
     let result = null;
+    let username = "";
+    var userskills = [];
 
     var modal = {};
 
-    let getFreqColor = (percentil) => {
-        if (percentil >= 80) {
-            return "green";
-        } else if (percentil >= 60) {
-            return "blue";
-        } else if (percentil >= 40) {
-            return "yellow";
-        } else if (percentil >= 20) {
-            return "orange";
-        } else {
-            return "red";
+    function getRandomColor() {
+        var letters = "9ABCD".split("");
+        var color = "#";
+        for (var i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * letters.length)];
         }
-    };
+        return color;
+    }
 
     /**
      * Print Related Skills
@@ -50,47 +47,29 @@
         let iDiv = document.getElementById(`modal-tags-${market}`);
         iDiv.innerHTML = "";
 
-        // Rewuired vars to limit the number of low priority skills
-        let found_red_skill = false;
+        // Required vars to limit the number of low priority skills
         let skills_counter = 0;
-        let related_skills_to_show = 0;
 
         for (const key in percentils) {
-            // Initialization
-            let percentil = percentils[key];
-            let color = percentil >= 20 && percentil < 60 ? "#222" : "#fff";
             let innerDiv = document.createElement("span");
-
-            // Limit low priority skills
-            if (percentil < 20) {
-                if (found_red_skill == false) {
-                    found_red_skill = true;
-                    related_skills_to_show = Math.ceil(
-                        Number(skills_counter) / 4
-                    );
-                } else {
-                    related_skills_to_show--;
-                }
-            }
             skills_counter++;
 
-            // Print the tag
-            innerDiv.style.color = color;
-            innerDiv.style.backgroundColor = getFreqColor(percentil);
-            innerDiv.style.margin = "5px";
-            innerDiv.style.padding = "5px";
-            innerDiv.style.borderRadius = "5px";
-            innerDiv.style.display = "inline-block";
-            innerDiv.innerHTML = `<strong>${key}</strong>`;
-
-            console.log(key);
-            console.log(percentil);
-            console.log(related_skills_to_show);
-
-            if (percentil < 20 && related_skills_to_show == 0) {
+            if (skills_counter > 40) {
                 break;
             }
-            iDiv.appendChild(innerDiv);
+
+            if (!userskills.includes(key)) {
+                // Print the tag
+                innerDiv.style.color = "#222";
+                innerDiv.style.backgroundColor = getRandomColor();
+                innerDiv.style.margin = "5px";
+                innerDiv.style.padding = "5px";
+                innerDiv.style.borderRadius = "5px";
+                innerDiv.style.display = "inline-block";
+                innerDiv.innerHTML = `<strong>${key}</strong>`;
+
+                iDiv.appendChild(innerDiv);
+            }
         }
     }
 
@@ -99,47 +78,67 @@
      */
     async function submitForm() {
         if (skill) {
-            if (market == "people") {
-                document.getElementById("skill_is_required").style.display =
-                    "none";
-                let skills = await exploreMarket(market, false);
-                printRelatedSkills(market, skills);
-                modal[market].show();
-            } else {
-                // Skills from market `people`
-                document.getElementById("skill_is_required").style.display =
-                    "none";
-                let peopleSkills = await exploreMarket("people", false);
+            username = username.trim();
 
-                // Skills from market `job`
-                document.getElementById("skill_is_required").style.display =
-                    "none";
-                let jobSkills = await exploreMarket("jobs", false);
-
-                // Find common skills
-                let jobSkillsList = Object.keys(jobSkills);
-                let relevantSkills = {};
-                for (var key in peopleSkills) {
-                    if (jobSkillsList.includes(key)) {
-                        relevantSkills[key] =
-                            jobSkills[key] * (1 / peopleSkills[key]);
+            if (username != "") {
+                const res_user_skills = await fetch(
+                    `${API_URL}people/${username}/skills`,
+                    {
+                        method: "GET",
                     }
-                }
-
-                // Convert to percentil
-                let max_skill_frequency = Math.max.apply(
-                    null,
-                    Object.values(result.related_skills)
                 );
-                let percentils = {};
-                for (const key in result.related_skills) {
-                    percentils[key] =
-                        (result.related_skills[key] / max_skill_frequency) *
-                        100;
-                }
 
-                printRelatedSkills(market, percentils);
-                modal["jobs"].show();
+                const json_user_skills = await res_user_skills.json();
+                userskills = JSON.parse(JSON.stringify(json_user_skills));
+            } else {
+                userskills = [];
+            }
+
+            if (!Array.isArray(userskills) && username != "") {
+                modal["error"].show();
+            } else {
+                if (market == "people") {
+                    document.getElementById("skill_is_required").style.display =
+                        "none";
+                    let skills = await exploreMarket(market, false);
+                    printRelatedSkills(market, skills);
+                    modal[market].show();
+                } else {
+                    // Skills from market `people`
+                    document.getElementById("skill_is_required").style.display =
+                        "none";
+                    let peopleSkills = await exploreMarket("people", false);
+
+                    // Skills from market `job`
+                    document.getElementById("skill_is_required").style.display =
+                        "none";
+                    let jobSkills = await exploreMarket("jobs", false);
+
+                    // Find common skills
+                    let jobSkillsList = Object.keys(jobSkills);
+                    let relevantSkills = {};
+                    for (var key in peopleSkills) {
+                        if (jobSkillsList.includes(key)) {
+                            relevantSkills[key] =
+                                jobSkills[key] * (1 / peopleSkills[key]);
+                        }
+                    }
+
+                    // Convert to percentil
+                    let max_skill_frequency = Math.max.apply(
+                        null,
+                        Object.values(result.related_skills)
+                    );
+                    let percentils = {};
+                    for (const key in result.related_skills) {
+                        percentils[key] =
+                            (result.related_skills[key] / max_skill_frequency) *
+                            100;
+                    }
+
+                    printRelatedSkills(market, percentils);
+                    modal["jobs"].show();
+                }
             }
         } else {
             document.getElementById("skill_is_required").style.display =
@@ -155,48 +154,43 @@
         document.body.style.cursor = "wait";
         document.getElementById("btn_explore").disabled = true;
 
-        if (Number(sample) <= 2500) {
-            const endpoint = `${API_URL}${market}?sample=${sample}`;
-            const res = await fetch(endpoint, {
-                method: "POST",
-                body: JSON.stringify({
-                    skills: {
-                        [skill]: proficiency,
-                    },
-                }),
-                headers: {
-                    "Content-Type": "application/json",
+        const endpoint = `${API_URL}${market}?sample=${sample}`;
+        const res = await fetch(endpoint, {
+            method: "POST",
+            body: JSON.stringify({
+                skills: {
+                    [skill]: proficiency,
                 },
-            });
+            }),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
 
-            const json = await res.json();
-            result = JSON.parse(JSON.stringify(json));
+        const json = await res.json();
+        result = JSON.parse(JSON.stringify(json));
 
-            let max_skill_frequency = Math.max.apply(
-                null,
-                Object.values(result.related_skills)
-            );
+        let max_skill_frequency = Math.max.apply(
+            null,
+            Object.values(result.related_skills)
+        );
 
-            let percentils = {};
-            for (const key in result.related_skills) {
-                percentils[key] =
-                    (result.related_skills[key] / max_skill_frequency) * 100;
-            }
-
-            document.body.style.cursor = "auto";
-            document.getElementById("btn_explore").disabled = false;
-
-            return percentils;
-        } else {
-            let iDiv = document.getElementById(`modal-body-${market}`);
-            iDiv.innerHTML = "The maximun sample size is 2,500.";
+        let percentils = {};
+        for (const key in result.related_skills) {
+            percentils[key] =
+                (result.related_skills[key] / max_skill_frequency) * 100;
         }
+
+        document.body.style.cursor = "auto";
+        document.getElementById("btn_explore").disabled = false;
+
+        return percentils;
     }
 
     /**
      * Modal window
      */
-    ["jobs", "people"].forEach((market) => {
+    ["jobs", "people", "error"].forEach((market) => {
         window.addEventListener(
             "DOMContentLoaded",
             (event) => {
@@ -246,7 +240,7 @@
                 on:submit|preventDefault
             >
                 <p class="fs-5 text text-dark mt-0 mb-2">
-                    Name your role or one of your main skills
+                    Name one of your skills or current/desired role:
                 </p>
                 <p
                     id="skill_is_required"
@@ -364,6 +358,12 @@
                     />
                     <label class="form-check-label" for="aflexRadioDefault13">
                         Complementary skills.
+                        <span class="moreinfo">
+                            - Useful to complete your <a
+                                href="https://torre.co/genome"
+                                target="_blank">Genome</a
+                            >.
+                        </span>
                     </label>
                 </div>
 
@@ -382,8 +382,31 @@
                         for="aflexRadioDefault23"
                     >
                         Related skills in demand.
+                        <span class="moreinfo">
+                            - Increase your chances to <a
+                                href="https://torre.co/for-candidates"
+                                target="_blank">get hired</a
+                            >.
+                        </span>
                     </label>
                 </div>
+
+                <p class="fs-5 text text-dark mt-4 mb-2">
+                    Your username at Torre
+                </p>
+                <div class="form-outline">
+                    <input
+                        type="text"
+                        id="form-username"
+                        class="form-control"
+                        style="border: 1px solid #ddd;"
+                        placeholder=""
+                        bind:value={username}
+                    />
+                </div>
+                <span class="moreinfo mt-0">
+                    If provided, we'll filter out the skills in your profile.
+                </span>
 
                 <button
                     id="btn_explore"
@@ -397,7 +420,10 @@
         </div>
     </div>
     <p class="slogan">
-        Based on the actual job market. Powered by <a href="https://torre.co">
+        Based on the actual job market. Powered by <a
+            href="https://torre.co"
+            target="_blank"
+        >
             Torre.co
         </a>
     </p>
@@ -432,6 +458,9 @@
                     />). The selected proficiency level (<span
                         class="modal-desc-proficiency fw-bold"
                     />) is considered as well:
+                </p>
+                <p class="fw-400">
+                    A maximum of 40 skills are presented ordered by relevance.
                 </p>
                 <div id="modal-tags-jobs">
                     <span class="skill-tag" style="display: none;">
@@ -481,11 +510,51 @@
                     <span class="modal-desc-skill fw-bold" /> -
                     <span class="modal-desc-proficiency fw-bold" />.
                 </p>
+                <p class="fw-400">
+                    A maximum of 40 skills are presented ordered by relevance.
+                </p>
                 <div id="modal-tags-people">
                     <span class="skill-tag" style="display: none;">
                         Placeholder
                     </span>
                 </div>
+            </div>
+            <div class="modal-footer">
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    data-mdb-dismiss="modal"
+                >
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div
+    class="modal fade"
+    id="errorModal"
+    tabindex="-1"
+    aria-labelledby="exampleModalLabel"
+    aria-hidden="true"
+>
+    <div class="modal-dialog modal-dialog-scrollable ">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">
+                    Complementary Skills
+                </h5>
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-mdb-dismiss="modal"
+                    aria-label="Close"
+                />
+            </div>
+            <div id="modal-body-error" class="modal-body">
+                The requested username doesn't exists.
             </div>
             <div class="modal-footer">
                 <button
@@ -527,5 +596,9 @@
     .slogan a {
         color: white;
         font-weight: bold;
+    }
+    .moreinfo {
+        color: #777;
+        font-size: small;
     }
 </style>
