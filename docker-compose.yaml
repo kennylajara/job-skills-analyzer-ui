@@ -2,7 +2,7 @@ version: '3'
 
 services:
   app:
-    image: kennylajara/job-skills-analyzer-ui
+    image: kennylajara/job-skills-analyzer-ui@sha256:d14dd99e6d97aa0c8e460a7f90f4d4749cb6da0d2d5766da3cb8b73b3d94e866
     build:
       context: .
       dockerfile: Dockerfile
