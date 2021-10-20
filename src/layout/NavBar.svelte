@@ -4,14 +4,14 @@
 >
     <div class="container-fluid">
         <!-- Navbar brand -->
-        <a
+        <!-- <a
             class="navbar-brand nav-link"
             target="_blank"
             href="https://skills.kennylajara.com"
         >
             <strong>Skills</strong>
-        </a>
-        <button
+        </a> -->
+        <!-- <button
             class="navbar-toggler"
             type="button"
             data-mdb-toggle="collapse"
@@ -21,15 +21,15 @@
             aria-label="Toggle navigation"
         >
             <i class="fas fa-bars" />
-        </button>
+        </button> -->
         <div class="collapse navbar-collapse" id="navbarExample01">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <!-- <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item active">
                     <a class="nav-link" href="#" rel="nofollow" target="_blank"
                         >A market based job skill analyzer</a
                     >
                 </li>
-            </ul>
+            </ul> -->
 
             <ul class="navbar-nav d-flex flex-row">
                 <!-- Icons -->

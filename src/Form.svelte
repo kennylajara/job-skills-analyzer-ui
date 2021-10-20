@@ -4,8 +4,8 @@
      * TODO: Don't rush... use environment variable
      *
      */
-    const API_URL = "http://localhost:3000/";
-    // const API_URL = "https://api.skills.kennylajara.com/";
+    // const API_URL = "http://localhost:3000/";
+    const API_URL = "https://api.skills.kennylajara.com/";
 </script>
 
 <script>
@@ -13,7 +13,7 @@
 
     let sample = 1000;
     var skill = "";
-    let proficiency = "master";
+    var proficiency = "master";
     var market = "people";
 
     let result = null;
@@ -38,6 +38,15 @@
      * Print Related Skills
      */
     function printRelatedSkills(market, percentils) {
+        document
+            .getElementsByClassName("modal-desc-proficiency")
+            .forEach((ele) => {
+                ele.innerHTML = proficiency;
+            });
+        document.getElementsByClassName("modal-desc-skill").forEach((ele) => {
+            ele.innerHTML = skill;
+        });
+
         let iDiv = document.getElementById(`modal-tags-${market}`);
         iDiv.innerHTML = "";
 
@@ -228,11 +237,16 @@
 
 <!-- Form -->
 <div class="container">
-    <div class="row justify-content-center">
+    <h1>Skills</h1>
+    <h2>A simple yet powerful job skills analyzer</h2>
+    <div class="row justify-content-center my-2">
         <div class="col-xl-5 col-md-8">
-            <form class="bg-white rounded-5 shadow-5-strong p-5">
-                <p class="fs-5 text text-dark mt-4">
-                    Name one of your main skills
+            <form
+                class="bg-white rounded-5 shadow-5-strong p-5"
+                on:submit|preventDefault
+            >
+                <p class="fs-5 text text-dark mt-0 mb-2">
+                    Name your role or one of your main skills
                 </p>
                 <p
                     id="skill_is_required"
@@ -253,8 +267,8 @@
                     />
                 </div>
 
-                <p class="fs-5 text text-dark mt-4">
-                    How good are you at that?
+                <p class="fs-5 text text-dark mt-4 mb-2">
+                    How good are you at it?
                 </p>
                 <div class="row">
                     <div class="col-md-6">
@@ -334,7 +348,9 @@
                     </div>
                 </div>
 
-                <p class="fs-5 text text-dark mt-4">What to you want to see?</p>
+                <p class="fs-5 text text-dark mt-4 mb-2">
+                    What do you want to see?
+                </p>
                 <!-- Default radio -->
                 <div class="form-check">
                     <input
@@ -347,7 +363,7 @@
                         checked
                     />
                     <label class="form-check-label" for="aflexRadioDefault13">
-                        Related skills. I want to complete my profile.
+                        Complementary skills.
                     </label>
                 </div>
 
@@ -365,7 +381,7 @@
                         class="form-check-label mr-0"
                         for="aflexRadioDefault23"
                     >
-                        Skills that I could develop to get more job offers.
+                        Related skills in demand.
                     </label>
                 </div>
 
@@ -380,6 +396,11 @@
             </form>
         </div>
     </div>
+    <p class="slogan">
+        Based on the actual job market. Powered by <a href="https://torre.co">
+            Torre.co
+        </a>
+    </p>
 </div>
 
 <!-- Jobs Modal -->
@@ -393,7 +414,9 @@
     <div class="modal-dialog modal-dialog-scrollable ">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Results</h5>
+                <h5 class="modal-title" id="exampleModalLabel">
+                    Related skills in demand
+                </h5>
                 <button
                     type="button"
                     class="btn-close"
@@ -402,7 +425,14 @@
                 />
             </div>
             <div id="modal-body-jobs" class="modal-body">
-                <!-- <p>Brief description here</p> -->
+                <p class="fw-400">
+                    Below is a list of the skills most appreciated by the job
+                    market and related to the indicated role or skill (<span
+                        class="modal-desc-skill fw-bold"
+                    />). The selected proficiency level (<span
+                        class="modal-desc-proficiency fw-bold"
+                    />) is considered as well:
+                </p>
                 <div id="modal-tags-jobs">
                     <span class="skill-tag" style="display: none;">
                         Placeholder
@@ -433,7 +463,9 @@
     <div class="modal-dialog modal-dialog-scrollable ">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Results</h5>
+                <h5 class="modal-title" id="exampleModalLabel">
+                    Complementary Skills
+                </h5>
                 <button
                     type="button"
                     class="btn-close"
@@ -442,7 +474,13 @@
                 />
             </div>
             <div id="modal-body-people" class="modal-body">
-                <!-- <p>Brief description here</p> -->
+                <p class="fw-400">
+                    The following is a list of complementary skills to the
+                    indicated role or skill, according to the selected
+                    proficiency level. In this case:
+                    <span class="modal-desc-skill fw-bold" /> -
+                    <span class="modal-desc-proficiency fw-bold" />.
+                </p>
                 <div id="modal-tags-people">
                     <span class="skill-tag" style="display: none;">
                         Placeholder
@@ -465,5 +503,29 @@
 <style>
     .skill-tag {
         background-color: #ff0000;
+    }
+
+    h1,
+    h2,
+    .slogan {
+        text-align: center;
+        color: white;
+    }
+
+    h1 {
+        font-weight: bold;
+    }
+
+    h2 {
+        font-size: large;
+    }
+
+    .slogan {
+        font-size: small;
+    }
+
+    .slogan a {
+        color: white;
+        font-weight: bold;
     }
 </style>
